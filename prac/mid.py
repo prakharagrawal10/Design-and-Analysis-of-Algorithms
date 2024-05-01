@@ -12,7 +12,7 @@ def copy_asm_files(directory):
         for filename in os.listdir(directory):
             if filename.endswith(".cpp"):
                 # Write the filename as a heading
-                output_file.write(f"=================== {filename} =================\n\n")
+                output_file.write(f"==================== {filename} =================\n\n")
                 # Read the content of the .asm file and write it to the output file
                 with open(os.path.join(directory, filename), "r") as asm_file:
                     output_file.write(asm_file.read())
