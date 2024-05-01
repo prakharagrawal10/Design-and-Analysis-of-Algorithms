@@ -434,6 +434,66 @@ int main() {
     return 0;
 }
 
+=================== intersection.cpp =================
+
+#include <iostream>
+using namespace std;
+
+// Point structure to represent points in 2D space
+struct Point {
+    int x, y;
+};
+
+// Function to find the direction of three points (p, q, r)
+int direction(Point p, Point q, Point r) {
+    int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+    if (val == 0) return 0; // Collinear
+    return (val > 0) ? 1 : 2; // Clockwise or counterclockwise
+}
+
+
+// Function to check if point q lies on segment pr
+bool onSegment(Point p, Point q, Point r) {
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+        return true;
+    return false;
+}
+
+// Function to check if two line segments intersect
+bool doIntersect(Point p1, Point q1, Point p2, Point q2) {
+    int d1 = direction(p1, q1, p2);
+    int d2 = direction(p1, q1, q2);
+    int d3 = direction(p2, q2, p1);
+    int d4 = direction(p2, q2, q1);
+
+    // General case
+    if (d1 != d2 && d3 != d4) return true;
+
+    // Special cases (collinear segments)
+    if (d1 == 0 && onSegment(p1, p2, q1)) return true;
+    if (d2 == 0 && onSegment(p1, q2, q1)) return true;
+    if (d3 == 0 && onSegment(p2, p1, q2)) return true;
+    if (d4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false;
+}
+
+
+
+// Main function
+int main() {
+    Point p1 = {1, 1}, q1 = {10, 1};
+    Point p2 = {1, 2}, q2 = {10, 2};
+
+    if (doIntersect(p1, q1, p2, q2))
+        cout << "Yes\n";
+    else
+        cout << "No\n";
+
+    return 0;
+}
+
 =================== jarvismatch.cpp =================
 
 #include <iostream>
@@ -1389,4 +1449,84 @@ int main()
     return 0;
 }
 
+
+=================== sweepinglines.cpp =================
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Point {
+    int x, y;
+};
+
+struct Segment {
+    Point start, end;
+};
+
+// Function to check if two line segments intersect
+bool doIntersect(const Segment& s1, const Segment& s2) {
+    auto orientation = [](const Point& p, const Point& q, const Point& r) -> int {
+        int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+        if (val == 0) return 0; // Collinear
+        return (val > 0) ? 1 : 2; // Clockwise or counterclockwise
+    };
+
+    int o1 = orientation(s1.start, s1.end, s2.start);
+    int o2 = orientation(s1.start, s1.end, s2.end);
+    int o3 = orientation(s2.start, s2.end, s1.start);
+    int o4 = orientation(s2.start, s2.end, s1.end);
+
+    // General case: segments intersect if orientations are different
+    if (o1 != o2 && o3 != o4)
+        return true;
+
+    // Special cases: segments are collinear and overlap
+    if (o1 == 0 && o2 == 0 && o3 == 0 && o4 == 0) {
+        // Check if segments overlap
+        if (max(s1.start.x, s1.end.x) < min(s2.start.x, s2.end.x) ||
+            max(s2.start.x, s2.end.x) < min(s1.start.x, s1.end.x) ||
+            max(s1.start.y, s1.end.y) < min(s2.start.y, s2.end.y) ||
+            max(s2.start.y, s2.end.y) < min(s1.start.y, s1.end.y))
+            return false;
+        return true;
+    }
+
+    return false;
+}
+
+// Function to find intersecting line segments using line sweep algorithm
+vector<pair<int, int>> findIntersectingLines(const vector<Segment>& segments) {
+    vector<pair<int, int>> intersections;
+
+    for (size_t i = 0; i < segments.size(); ++i) {
+        for (size_t j = i + 1; j < segments.size(); ++j) {
+            if (doIntersect(segments[i], segments[j])) {
+                intersections.push_back({i, j});
+            }
+        }
+    }
+
+    return intersections;
+}
+
+int main() {
+    // Example usage
+    vector<Segment> segments = {
+        {{1, 1}, {4, 4}},
+        {{2, 3}, {5, 1}},
+        {{3, 2}, {6, 5}}
+    };
+
+    vector<pair<int, int>> intersectingPairs = findIntersectingLines(segments);
+
+    cout << "Intersecting segments:\n";
+    for (const auto& pair : intersectingPairs) {
+        cout << "Segments " << pair.first << " and " << pair.second << endl;
+    }
+
+    return 0;
+}
 
